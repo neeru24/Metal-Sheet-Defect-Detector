@@ -42,11 +42,8 @@ This Code of Conduct applies within all project spaces — including GitHub issu
 
 ## 🛡️ Reporting
 
-If you experience or witness unacceptable behavior, please report it confidentially to:
 
-📧 **ashutoshkumart82@gmail.com**
-
-All reports will be handled promptly, fairly, and with respect for the privacy of the reporter.
+All reports will be handled promptly, fairly, and with respect for the privacy of the reporter. Please contact me through the issue section of the repository
 
 ---
 
