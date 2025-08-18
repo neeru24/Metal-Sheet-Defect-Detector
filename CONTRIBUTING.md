@@ -87,27 +87,33 @@ Before requesting a review, ensure:
 
 ### Backend (Flask)
 
+#### Please execute the following commands at root directory:
+
 1. Create & activate a virtual environment (recommended):
 
+   #### On macOS / Linux
    ```bash
    python -m venv venv
-   # macOS / Linux
    source venv/bin/activate
-   # Windows
+   ```
+   
+   #### On Windows
+   ```
+   python -m venv venv
    venv\Scripts\activate
    ```
 
-2. Install dependencies:
+3. Install dependencies:
 
    ```bash
-   # If a requirements file exists in repo root or backend
+   # requirements file exists in repo root
    pip install -r requirements.txt
 
    # OR install core packages manually
    pip install flask flask-cors ultralytics pillow
    ```
 
-3. Run the backend server:
+4. Run the backend server:
 
    ```bash
    cd backend
@@ -116,7 +122,12 @@ Before requesting a review, ensure:
 
 The backend will expose an API endpoint (e.g., `POST /detect`) that accepts an image and returns a result image.
 
+### **_Add venv/ to .gitignore before comming changes on the branches._**
+
+
 ### Frontend (React)
+
+#### Please execute the following commands at root directory:
 
 1. Install dependencies and start dev server:
 
@@ -149,7 +160,15 @@ Metal-Sheet-Defect-Detector/
 │   ├── public/        # Static assets
 │   └── src/           # React source code (App.js, components)
 ├── Images_to_test/    # Sample images for quick local testing
+└── venv/              # Virtual Environment on Windows Operating System
+    ├── Include
+    ├── Lib
+    ├── Scripts
+    ├── share
+    ├── .gitignore
+    └── pyvenv.cfg
 └── README.md
+└── requirements.txt   #For creating venv
 ```
 
 ---
@@ -185,3 +204,4 @@ By contributing, you agree that your contributions will be licensed under the [*
 If you're unsure where to start, open an issue describing what you'd like to work on or ask for help — maintainers and contributors will guide you.
 
 Thank you for helping improve Metal-Sheet-Defect-Detector! 🙌
+
