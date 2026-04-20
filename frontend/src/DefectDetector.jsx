@@ -23,12 +23,60 @@ function DefectDetector({ onBack }) {
   const [selectedBatchResult, setSelectedBatchResult] = useState(null);
   const [showBatchResultModal, setShowBatchResultModal] = useState(false);
   const [batchComparisonMode, setBatchComparisonMode] = useState(false);
+  
+  // Scanner Animation States
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const scannerIntervalRef = useRef(null);
 
   const { register, handleSubmit, reset, watch, setValue } = useForm({
     defaultValues: { image: null },
   });
 
   const file = watch("image")?.[0] || null;
+
+  // Start Scanner Animation
+  const startScanner = () => {
+    setShowScanner(true);
+    setScanProgress(0);
+    
+    if (scannerIntervalRef.current) {
+      clearInterval(scannerIntervalRef.current);
+    }
+    
+    scannerIntervalRef.current = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(scannerIntervalRef.current);
+          setTimeout(() => {
+            setShowScanner(false);
+            setScanProgress(0);
+          }, 500);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 30);
+  };
+
+  // Stop Scanner Animation
+  const stopScanner = () => {
+    if (scannerIntervalRef.current) {
+      clearInterval(scannerIntervalRef.current);
+      scannerIntervalRef.current = null;
+    }
+    setShowScanner(false);
+    setScanProgress(0);
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (scannerIntervalRef.current) {
+        clearInterval(scannerIntervalRef.current);
+      }
+    };
+  }, []);
 
   // Load detection history from localStorage
   useEffect(() => {
@@ -59,7 +107,7 @@ function DefectDetector({ onBack }) {
       const base64Image = await blobToBase64(imageBlob);
       const newEntry = {
         id: Date.now(),
-        imageUrl: base64Image, // Store as base64 instead of blob URL
+        imageUrl: base64Image,
         fileName: fileName,
         timestamp: timestamp,
         date: new Date(timestamp).toLocaleString()
@@ -108,7 +156,6 @@ function DefectDetector({ onBack }) {
   const shareResult = async () => {
     if (!resultImg) return;
     
-    // Convert base64 to blob for sharing
     const response = await fetch(resultImg);
     const blob = await response.blob();
     const file = new File([blob], 'defect-detection.png', { type: 'image/png' });
@@ -195,10 +242,8 @@ function DefectDetector({ onBack }) {
         const imageBlob = response.data;
         const imageUrl = URL.createObjectURL(imageBlob);
         
-        // Convert to base64 for storage
         const base64Image = await blobToBase64(imageBlob);
         
-        // Store original image for comparison
         const reader = new FileReader();
         const originalImageUrl = await new Promise((resolve) => {
           reader.onload = (e) => resolve(e.target.result);
@@ -213,7 +258,6 @@ function DefectDetector({ onBack }) {
           timestamp: new Date().toISOString()
         });
         
-        // Save to history with base64
         const historyEntry = {
           id: Date.now() + i,
           imageUrl: base64Image,
@@ -395,6 +439,9 @@ function DefectDetector({ onBack }) {
       setResultImg(null);
       setUploadProgress(0);
       setShowComparison(false);
+      
+      // Start scanner animation when detection begins
+      startScanner();
 
       const response = await axios.post("http://localhost:5000/predict", formData, {
         responseType: "blob",
@@ -408,16 +455,22 @@ function DefectDetector({ onBack }) {
       const imageUrl = URL.createObjectURL(imageBlob);
       setResultImg(imageUrl);
       
-      // Save to history with base64
       await saveToHistory(imageBlob, fileName || data.image[0].name, new Date().toISOString());
       
       reset();
       setUploadProgress(100);
       setTimeout(() => setUploadProgress(0), 1000);
+      
+      // Stop scanner after detection completes
+      setTimeout(() => {
+        stopScanner();
+      }, 500);
+      
     } catch (error) {
       alert("Error detecting defect. Please try again.");
       console.error(error);
       setUploadProgress(0);
+      stopScanner();
     } finally {
       setLoading(false);
     }
@@ -432,6 +485,30 @@ function DefectDetector({ onBack }) {
         </svg>
         <span>Back to Home</span>
       </button>
+
+      {/* Scanner Animation Overlay */}
+      {showScanner && (
+        <div className="scanner-overlay">
+          <div className="scanner-container">
+            <div className="scan-line"></div>
+            <div className="scan-glow"></div>
+            <div className="scan-progress">
+              <div className="scan-progress-fill" style={{ width: `${scanProgress}%` }}></div>
+            </div>
+            <div className="scan-text">
+              <span className="scan-icon">🔍</span>
+              <span>AI Scanning for defects... {scanProgress}%</span>
+            </div>
+            <div className="scan-particles">
+              <div className="particle"></div>
+              <div className="particle"></div>
+              <div className="particle"></div>
+              <div className="particle"></div>
+              <div className="particle"></div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Theme Toggle */}
       <button onClick={toggleTheme} className="theme-toggle-btn" aria-label="Toggle theme">
@@ -465,7 +542,7 @@ function DefectDetector({ onBack }) {
         style={{ display: 'none' }}
       />
 
-      {/* History Panel - Now with proper image preview */}
+      {/* History Panel */}
       {showHistory && (
         <div className="history-panel">
           <div className="history-header">
