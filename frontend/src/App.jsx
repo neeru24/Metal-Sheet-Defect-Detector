@@ -19,12 +19,7 @@ function App() {
       {!showDetector ? (
         <LandingPage onGetStarted={handleGetStarted} />
       ) : (
-        <div className="detector-wrapper">
-          <button onClick={handleBackToLanding} className="back-to-home-btn">
-            ← Back to Home
-          </button>
-          <DefectDetector />
-        </div>
+        <DefectDetector onBack={handleBackToLanding} />
       )}
     </>
   );
